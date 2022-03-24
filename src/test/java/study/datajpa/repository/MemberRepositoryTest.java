@@ -1,6 +1,7 @@
 package study.datajpa.repository;
 
 import org.assertj.core.api.Assertions;
+import org.hibernate.Hibernate;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -11,7 +12,9 @@ import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 import study.datajpa.dto.MemberDto;
 import study.datajpa.entity.Member;
+import study.datajpa.entity.Team;
 
+import javax.persistence.EntityManager;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,6 +25,12 @@ public class MemberRepositoryTest {
 
     @Autowired
     MemberRepository memberRepository;
+
+    @Autowired
+    TeamRepository teamRepository;
+
+    @Autowired
+    EntityManager em;
 
     @Test
     public void testMember() {
@@ -108,5 +117,41 @@ public class MemberRepositoryTest {
 
         //then
         Assertions.assertThat(resultCount).isEqualTo(3);
+    }
+
+    @Test
+    public void findMemberLazy() throws Exception {
+        //given
+        Team teamA = new Team("teamA");
+        Team teamB = new Team("teamB");
+        teamRepository.save(teamA);
+        teamRepository.save(teamB);
+        memberRepository.save(new Member("member1", 10, teamA));
+        memberRepository.save(new Member("member1", 20, teamB));
+
+        em.flush();
+        em.clear();
+
+        //when
+        List<Member> members = memberRepository.findAll();
+
+        //then - teamName을 조회하는 쿼리가 추가적으로 나감.
+        for (Member member : members) {
+            member.getTeam().getName();
+        }
+    }
+
+    @Test
+    public void queryHint() throws Exception {
+        //given
+        memberRepository.save(new Member("member1", 10));
+        em.flush();
+        em.clear();
+
+        //when
+        Member member = memberRepository.findMemberQueryHintByUsername("member1");
+        member.setUsername("member2");
+
+        em.flush(); // Update Query 실행되지 않음.
     }
 }
