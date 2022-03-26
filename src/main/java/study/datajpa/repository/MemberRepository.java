@@ -14,7 +14,7 @@ import javax.persistence.QueryHint;
 import java.util.List;
 import java.util.Optional;
 
-public interface MemberRepository extends JpaRepository<Member, Long> {
+public interface MemberRepository extends JpaRepository<Member, Long>, MemberRepositoryCustom {
     List<Member> findByUsernameAndAgeGreaterThan(String username, int age);
 
     // 위에서 JpaRepository 타입에 명시한 클래스 + 메서드 이름이 같으면 NamedQuery는 생략 가능.
