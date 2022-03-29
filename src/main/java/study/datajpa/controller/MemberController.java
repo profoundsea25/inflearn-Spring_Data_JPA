@@ -10,6 +10,8 @@ import study.datajpa.dto.MemberDto;
 import study.datajpa.entity.Member;
 import study.datajpa.repository.MemberRepository;
 
+import java.util.function.Function;
+
 @RestController
 @RequiredArgsConstructor
 public class MemberController {
@@ -28,7 +30,7 @@ public class MemberController {
         return member.getUsername();
     }
 
-    @GetMapping("/members")
+//    @GetMapping("/members")
     public Page<Member> list(Pageable pageable) {
         Page<Member> page = memberRepository.findAll(pageable);
         return page;
@@ -39,15 +41,25 @@ public class MemberController {
         return null;
     }
 
-    @GetMapping("/members")
+//    @GetMapping("/members")
     public Page<MemberDto> list3(Pageable pageable) {
         Page<Member> page = memberRepository.findAll(pageable);
-        Page<MemberDto> pageDto = page.map(MemberDto::new);
+        Page<MemberDto> pageDto = page.map(new Function<Member, MemberDto>() {
+            @Override
+            public MemberDto apply(Member member) {
+                return new MemberDto(member.getId(), member.getUsername(), member.getTeam().getName());
+            }
+        });
         return pageDto;
     }
 
     @GetMapping("/members")
     public Page<MemberDto> list4(Pageable pageable) {
-        return memberRepository.findAll(pageable).map(MemberDto::new);
+        return memberRepository.findAll(pageable).map(new Function<Member, MemberDto>() {
+            @Override
+            public MemberDto apply(Member member) {
+                return new MemberDto(member.getId(), member.getUsername(), member.getTeam().getName());
+            }
+        });
     }
 }
